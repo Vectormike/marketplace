@@ -56,6 +56,8 @@ export default class AuthService {
   }
 
   public async SignIn(email: string, password: string): Promise<{ user: IUser; token: string }> {
+    this.logger.debug(`${email}`);
+
     const userRecord = await this.userModel.findOne({ email });
     if (!userRecord) {
       throw new Error('User not registered');
