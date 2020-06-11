@@ -3,11 +3,12 @@ export interface IUser {
   name: string;
   email: string;
   password: string;
-  salt: string;
+  phoneNumber: number;
 }
 
 export interface IUserInput {
   name: string;
   email: string;
+  phoneNumber: string;
   password: string;
 }
