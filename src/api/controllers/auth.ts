@@ -6,7 +6,7 @@ import { IUserInput } from '../../interfaces/IUser';
 const AuthController = {
   async registerUser(req: Request, res: Response, next: NextFunction) {
     const logger = Container.get('logger');
-    logger.debug(`Calling Sign-Up endpoint with body: ${req.body}`);
+    logger.debug(`Calling Sign-Up endpoint with body`);
     try {
       const authServiceInstance = Container.get(AuthService);
       const { user, token } = await authServiceInstance.SignUp(req.body as IUserInput);
@@ -19,7 +19,7 @@ const AuthController = {
 
   async loginUser(req: Request, res: Response, next: NextFunction) {
     const logger = Container.get('logger');
-    logger.debug(`Calling Sign-In endpoint with body: ${req.body}`);
+    logger.debug(`Calling Sign-In endpoint with body`);
     try {
       const { email, password } = req.body;
       const authServiceInstance = Container.get(AuthService);
@@ -31,3 +31,5 @@ const AuthController = {
     }
   },
 };
+
+export default AuthController;

@@ -15,10 +15,10 @@ const User = new mongoose.Schema(
       unique: true,
       index: true,
     },
-    phoneNumber: String,
-    password: String,
 
-    salt: String,
+    phoneNumber: String,
+
+    password: String,
 
     role: {
       type: String,
