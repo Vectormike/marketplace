@@ -15,7 +15,7 @@ const User = new mongoose.Schema(
       unique: true,
       index: true,
     },
-
+    phoneNumber: String,
     password: String,
 
     salt: String,
