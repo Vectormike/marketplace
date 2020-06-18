@@ -61,5 +61,9 @@ export default {
   emails: {
     apiKey: process.env.MAILGUN_API_KEY,
     domain: process.env.MAILGUN_DOMAIN,
+    port: 993,
+    host: 'imap.ethereal.email',
+    user: 'ashton76@ethereal.email',
+    pass: '8Pw11SPAq6Pv62FagW',
   },
 };

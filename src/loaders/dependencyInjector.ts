@@ -3,6 +3,7 @@ import LoggerInstance from './logger';
 import agendaFactory from './agenda';
 import config from '../config';
 import mailgun from 'mailgun-js';
+import nodemailer from 'nodemailer';
 
 export default ({ mongoConnection, models }: { mongoConnection; models: { name: string; model: any }[] }) => {
   try {
@@ -13,8 +14,19 @@ export default ({ mongoConnection, models }: { mongoConnection; models: { name: 
     const agendaInstance = agendaFactory({ mongoConnection });
 
     Container.set('agendaInstance', agendaInstance);
-    Container.set('logger', LoggerInstance)
-    Container.set('emailClient', mailgun({ apiKey: config.emails.apiKey, domain: config.emails.domain }))
+    Container.set('logger', LoggerInstance);
+    Container.set(
+      'emailClient',
+      nodemailer.createTransport({
+        port: config.emails.port,
+        host: config.emails.host,
+        auth: {
+          user: config.emails.user,
+          pass: config.emails.pass,
+        },
+        secure: true, // upgrades later with STARTTLS -- change this based on the PORT
+      }),
+    );
 
     LoggerInstance.info('✌️ Agenda injected into container');
 
