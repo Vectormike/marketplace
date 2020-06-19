@@ -5,21 +5,28 @@ const User = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, 'Please enter a full name'],
+      required: true,
       index: true,
     },
-
     email: {
       type: String,
       lowercase: true,
+      required: true,
       unique: true,
       index: true,
     },
-
-    phoneNumber: String,
-
-    password: String,
-
+    phoneNumber: {
+      type: String,
+      required: true,
+      minlength: 10,
+      maxlength: 11,
+    },
+    password: {
+      type: String,
+      required: true,
+      minlength: 6,
+      maxlength: 128,
+    },
     role: {
       type: String,
       default: 'user',
