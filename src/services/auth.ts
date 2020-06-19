@@ -17,6 +17,10 @@ export default class AuthService {
     @EventDispatcher() private eventDispatcher: EventDispatcherInterface,
   ) {}
 
+  /**
+   * Returns jwt token if registration was successful
+   * @public
+   */
   public async SignUp(userInput: IUserInput): Promise<{ user: IUser; token: string }> {
     try {
       const salt = randomBytes(32);
@@ -36,18 +40,8 @@ export default class AuthService {
       }
       this.logger.silly('Sending welcome email');
       await this.mailer.SendWelcomeEmail(userRecord);
-
       this.eventDispatcher.dispatch(events.user.signUp, { user: userRecord });
-
-      /**
-       * @TODO This is not the best way to deal with this
-       * There should exist a 'Mapper' layer
-       * that transforms data from layer to layer
-       * but that's too over-engineering for now
-       */
       const user = userRecord.toObject();
-      Reflect.deleteProperty(user, 'password');
-      Reflect.deleteProperty(user, 'salt');
       return { user, token };
     } catch (e) {
       this.logger.error(e);
@@ -55,6 +49,10 @@ export default class AuthService {
     }
   }
 
+  /**
+   * Returns jwt token if valid username and password is provided
+   * @public
+   */
   public async SignIn(email: string, password: string): Promise<{ user: IUser; token: string }> {
     this.logger.debug(`${email}`);
 
@@ -87,23 +85,15 @@ export default class AuthService {
   private generateToken(user) {
     const today = new Date();
     const exp = new Date(today);
+    const tokenType = 'Bearer';
     exp.setDate(today.getDate() + 60);
-
-    /**
-     * A JWT means JSON Web Token, so basically it's a json that is _hashed_ into a string
-     * The cool thing is that you can add custom properties a.k.a metadata
-     * Here we are adding the userId, role and name
-     * Beware that the metadata is public and can be decoded without _the secret_
-     * but the client cannot craft a JWT to fake a userId
-     * because it doesn't have _the secret_ to sign it
-     * more information here: https://softwareontheroad.com/you-dont-need-passport
-     */
     this.logger.silly(`Sign JWT for userId: ${user._id}`);
     return jwt.sign(
       {
-        _id: user._id, // We are gonna use this in the middleware 'isAuth'
+        _id: user._id,
         role: user.role,
         name: user.name,
+        tokenType,
         exp: exp.getTime() / 1000,
       },
       config.jwtSecret,
