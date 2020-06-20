@@ -3,9 +3,7 @@ export interface IOrder {
   user: object;
   cart: object;
   date: string;
-  preparing: boolean;
-  ontheway: boolean;
-  delivered: boolean;
+  orderStatus: string;
   name: string;
   address: string;
   paymentStatus: string;
