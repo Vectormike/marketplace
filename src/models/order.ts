@@ -1,6 +1,11 @@
 import { IOrder } from '../interfaces/IOrder';
 import mongoose, { Schema } from 'mongoose';
 
+/**
+ * Order status
+ */
+const status = ['Pending', 'Shipped', 'Delivered', 'Cancelled', 'Refund'];
+
 const Order = new mongoose.Schema({
   user: {
     type: Schema.Types.ObjectId,
@@ -14,16 +19,9 @@ const Order = new mongoose.Schema({
     type: String,
     required: true,
   },
-  preparing: {
-    type: Boolean,
-    required: true,
-  },
-  ontheway: {
-    type: Boolean,
-    required: true,
-  },
-  delivered: {
-    type: Boolean,
+  orderStatus: {
+    type: String,
+    enum: status,
     required: true,
   },
   name: {
