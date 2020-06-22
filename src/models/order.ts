@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { IOrder } from '../interfaces/IOrder';
 import mongoose, { Schema } from 'mongoose';
 
@@ -11,17 +12,23 @@ const Order = new mongoose.Schema({
     type: Schema.Types.ObjectId,
     ref: 'User',
   },
-  cart: {
-    type: Object,
-    required: true,
-  },
-  date: {
+  orderId: {
     type: String,
     required: true,
+  },
+  cart: {
+    type: Array,
+    required: true,
+    default: [],
+  },
+  date: {
+    type: Date,
+    default: new Date(),
   },
   orderStatus: {
     type: String,
     enum: status,
+    default: 'Pending',
     required: true,
   },
   name: {
@@ -32,9 +39,9 @@ const Order = new mongoose.Schema({
     type: String,
     required: true,
   },
-  paymentStatus: {
-    type: String,
-    default: 'Pending',
+  paid: {
+    type: Boolean,
+    default: false,
   },
 });
 
