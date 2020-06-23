@@ -1,7 +1,7 @@
 export interface IOrder {
   _id: string;
   user: object;
-  cart: object;
+  cart: string;
   date: string;
   orderStatus: string;
   name: string;
