@@ -7,7 +7,6 @@ import { randomBytes } from 'crypto';
 import { IVendor, IVendorInput } from '../interfaces/IVendor';
 import { EventDispatcher, EventDispatcherInterface } from '../decorators/eventDispatcher';
 import events from '../subscribers/events';
-import { errors } from 'celebrate';
 
 @Service()
 export default class VendorService {
