@@ -21,11 +21,13 @@ const Order = new mongoose.Schema({
     required: true,
     default: [],
   },
-  date: {
+  createdDate: {
     type: Date,
-    default: new Date(),
   },
-  orderStatus: {
+  updatedDate: {
+    type: Date,
+  },
+  status: {
     type: String,
     enum: status,
     default: 'Pending',
