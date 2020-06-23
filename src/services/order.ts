@@ -1,6 +1,5 @@
 import { Service, Inject } from 'typedi';
 import MailerService from './emails/mailer';
-import config from '../config';
 import { randomBytes } from 'crypto';
 import { IOrder } from '../interfaces/IOrder';
 
@@ -16,7 +15,7 @@ export default class OrderService {
    * Returns all orders if token is verified
    * @public
    */
-  public async viewAllOrder(): Promise<{ order: object }> {
+  public async viewAllOrder(): Promise<{ order: IOrder }> {
     try {
       this.logger.silly('Find all orders');
       const order = await this.orderModel
@@ -33,15 +32,18 @@ export default class OrderService {
     }
   }
 
-  public async makeOrder(name: string, address: string, user: string): Promise<{ order: object }> {
+  public async makeOrder(name: string, address: string, cart, user: string): Promise<{ order: IOrder }> {
     const orderId = randomBytes(2);
     try {
       this.logger.silly('Making order');
       const newOrder = new this.orderModel({
         user,
         orderId,
+        createdDate: new Date(),
+        cart,
         name,
         address,
+        paid: true,
       });
       this.logger.silly('Saving order to DB');
       const order = await newOrder.save();
@@ -50,6 +52,20 @@ export default class OrderService {
         throw new Error('Unable to make your order');
       }
       return { order };
+    } catch (error) {
+      this.logger.error(error);
+      return error;
+    }
+  }
+
+  public async deleteOrder(id: string) {
+    try {
+      this.logger.silly('Getting order ID');
+      const result = await this.orderModel.findByIdAndRemove({ id }).exec();
+      if (!result) {
+        throw new Error('Unable to delete');
+      }
+      return { message: 'Deleted!' };
     } catch (error) {
       this.logger.error(error);
       return error;
