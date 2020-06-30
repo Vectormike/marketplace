@@ -6,20 +6,7 @@ import Email from 'email-templates';
 export default class MailerService {
   constructor(@Inject('emailClient') private emailClient, @Inject('logger') private logger) {}
 
-  public async SendWelcomeEmail(user) {
-    /**
-     * @TODO Call Mailchimp/Sendgrid or whatever
-     */
-    // Added example for sending mail from mailgun
-
-    // verify connection configuration
-    this.emailClient.verify(error => {
-      if (error) {
-        this.logger.info('Email error: ', error);
-      } else {
-        this.logger.info('Email provider is successful');
-      }
-    });
+  public async sendWelcomeEmail(user) {
     const email = new Email({
       views: { root: __dirname },
       message: {
@@ -42,6 +29,56 @@ export default class MailerService {
         },
       })
       .catch(err => this.logger.info('error sending welcome message email', err));
+  }
+
+  public async sendResetPasswordEmail(user) {
+    const email = new Email({
+      views: { root: __dirname },
+      message: {
+        from: 'support@uyofoods.com',
+      },
+
+      send: true,
+      transport: this.emailClient,
+    });
+
+    email
+      .send({
+        template: 'passwordReset',
+        message: {
+          to: user.email,
+        },
+        locals: {
+          productName: 'Uyo Foods',
+          passwordResetUrl: `https://your-app/new-password/view?resetToken=${user.resetToken}`,
+        },
+      })
+      .catch(err => this.logger.info('error sending password reset message', err));
+  }
+
+  public async sendOrderEmail(user) {
+    const email = new Email({
+      views: { root: __dirname },
+      message: {
+        from: 'support@uyofoods.com',
+      },
+
+      send: true,
+      transport: this.emailClient,
+    });
+
+    email
+      .send({
+        template: 'makeOrder',
+        message: {
+          to: user.email,
+        },
+        locals: {
+          productName: 'Uyo Foods',
+          name: user.name,
+        },
+      })
+      .catch(err => this.logger.info('error sending order message', err));
   }
   public StartEmailSequence(sequence: string, user: Partial<IUser>) {
     if (!user.email) {
