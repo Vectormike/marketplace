@@ -15,7 +15,7 @@ export default class OrderService {
    * Returns all orders if token is verified
    * @public
    */
-  public async viewAllOrder(): Promise<{ order: IOrder }> {
+  public async viewAllOrder(): Promise<{ order }> {
     try {
       this.logger.silly('Find all orders');
       const order = await this.orderModel
@@ -47,6 +47,9 @@ export default class OrderService {
       });
       this.logger.silly('Saving order to DB');
       const order = await newOrder.save();
+
+      this.logger.silly('Sending email to user');
+      await this.mailer.SendOrderEmail(user);
 
       if (!order) {
         throw new Error('Unable to make your order');

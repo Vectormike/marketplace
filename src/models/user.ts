@@ -1,7 +1,8 @@
 import { IUser } from '../interfaces/IUser';
 import mongoose from 'mongoose';
+import mongoosePaginate from 'mongoose-paginate';
 
-const User = new mongoose.Schema(
+const UserSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -35,4 +36,17 @@ const User = new mongoose.Schema(
   { timestamps: true },
 );
 
-export default mongoose.model<IUser & mongoose.Document>('User', User);
+UserSchema.plugin(mongoosePaginate);
+
+/**
+ * Check if email is taken
+ * @param {string} email - The user's email
+ * @param {ObjectId} [excludeUserId] - The id of the user to be excluded
+ * @returns {Promise<boolean>}
+ */
+User.statics.isEmailTaken = async function(email, excludeUserId) {
+  const user = await this.findOne({ email, _id: { $ne: excludeUserId } });
+  return !!user;
+};
+
+export default mongoose.model<IUser & mongoose.Document>('User', UserSchema);
