@@ -17,21 +17,71 @@ export default class VendorService {
     @EventDispatcher() private eventDispatcher: EventDispatcherInterface,
   ) {}
 
-  public async SignUpVendor(vendorInput: IVendorInput): Promise<{ vendor: IVendor; token: string }> {
+  public async createVendor(vendorInput: IVendorInput): Promise<{ vendor: IVendor; token: string }> {
     try {
       const salt = randomBytes(32);
       this.logger.silly('Hashing Password');
       const hashedPassword = await argon2.hash(vendorInput.password, { salt });
       this.logger.silly(`Creating Vendor's records`);
-      const vendorRecord = await this.vendorModel.create({
+      const vendor = await this.vendorModel.create({
         ...vendorInput,
         hashedPassword,
       });
       this.logger.silly(`Generating JWT`);
-      const token = this.generateToken(vendorRecord);
+      const token = this.generateToken(vendor);
+      return { vendor, token };
     } catch (error) {
       this.logger.error(error);
       throw error;
+    }
+  }
+
+  /**
+   * Get vendor by id
+   * @param {ObjectId} id
+   * @returns {Promise<Vendor>}
+   */
+  public async getVendorById(id: string) {
+    try {
+      return this.vendorModel.findById(id);
+    } catch (e) {
+      this.logger.error(e);
+      throw e;
+    }
+  }
+
+  /**
+   * Get vendor by email
+   * @param {ObjectId} id
+   * @returns {Promise<Vendor>}
+   */
+  public async getVendorByEmail(email: string) {
+    try {
+      return this.vendorModel.findOne({ email });
+    } catch (e) {
+      this.logger.error(e);
+      throw e;
+    }
+  }
+
+  /**
+   * Get vendor by id
+   * @param {ObjectId} id
+   * @returns {Promise<Vendor>}
+   */
+
+  public async updateVendorById(id: string, updateBody): Promise<{ vendor: IVendor }> {
+    try {
+      const vendor = await this.vendorModel.findByIdAndUpdate(id, updateBody, {
+        new: true,
+      });
+      if (!vendor) {
+        throw new Error('User not found');
+      }
+      return { vendor };
+    } catch (e) {
+      this.logger.error(e);
+      throw e;
     }
   }
 
