@@ -1,85 +1,80 @@
-import { Service, Inject } from 'typedi';
+import { Service, Inject, Container } from 'typedi';
 import jwt from 'jsonwebtoken';
 import MailerService from './emails/mailer';
+import UserService from '../services/user';
+import VendorService from '../services/vendor';
 import config from '../config';
 import argon2 from 'argon2';
-import { randomBytes } from 'crypto';
-import { IUser, IUserInput } from '../interfaces/IUser';
+import { IUser } from '../interfaces/IUser';
 import { EventDispatcher, EventDispatcherInterface } from '../decorators/eventDispatcher';
-import events from '../subscribers/events';
+import { IVendor } from '../interfaces/IVendor';
 
 @Service()
 export default class AuthService {
   constructor(
     @Inject('userModel') private userModel: Models.UserModel,
+    @Inject('vendorModel') private vendorModel: Models.VendorModel,
     private mailer: MailerService,
     @Inject('logger') private logger,
     @EventDispatcher() private eventDispatcher: EventDispatcherInterface,
   ) {}
 
   /**
-   * Returns jwt token if registration was successful
-   * @public
-   */
-  public async SignUp(userInput: IUserInput): Promise<{ user: IUser; token: string }> {
-    try {
-      const salt = randomBytes(32);
-      this.logger.silly('Hashing password');
-      const hashedPassword = await argon2.hash(userInput.password, { salt });
-      this.logger.silly('Creating user db record');
-      const userRecord = await this.userModel.create({
-        ...userInput,
-        salt: salt.toString('hex'),
-        password: hashedPassword,
-      });
-      this.logger.silly('Generating JWT');
-      const token = this.generateToken(userRecord);
-
-      if (!userRecord) {
-        throw new Error('User cannot be created');
-      }
-      this.logger.silly('Sending welcome email');
-      await this.mailer.SendWelcomeEmail(userRecord);
-      this.eventDispatcher.dispatch(events.user.signUp, { user: userRecord });
-      const user = userRecord.toObject();
-      return { user, token };
-    } catch (e) {
-      this.logger.error(e);
-      throw e;
-    }
-  }
-
-  /**
    * Returns jwt token if valid username and password is provided
    * @public
    */
-  public async SignIn(email: string, password: string): Promise<{ user: IUser; token: string }> {
-    this.logger.debug(`${email}`);
-
-    const userRecord = await this.userModel.findOne({ email });
+  public async loginUserWithEmailAndPassword(email: string, password: string): Promise<{ user: IUser; token: string }> {
+    const userServiceInstance = Container.get(UserService);
+    const userRecord = await userServiceInstance.getUserByEmail(email);
     if (!userRecord) {
       throw new Error('User not registered');
     }
-    /**
-     * We use verify from argon2 to prevent 'timing based' attacks
-     */
     this.logger.silly('Checking password');
     const validPassword = await argon2.verify(userRecord.password, password);
     if (validPassword) {
       this.logger.silly('Password is valid!');
       this.logger.silly('Generating JWT');
       const token = this.generateToken(userRecord);
-
       const user = userRecord.toObject();
-      Reflect.deleteProperty(user, 'password');
-      Reflect.deleteProperty(user, 'salt');
-      /**
-       * Easy as pie, you don't need passport.js anymore :)
-       */
       return { user, token };
     } else {
       throw new Error('Invalid Password');
     }
+  }
+
+  public async loginVendorWithEmailAndPassword(
+    email: string,
+    password: string,
+  ): Promise<{ vendor: IVendor; token: string }> {
+    this.logger.debug(`${email}`);
+    const vendorServiceInstance = Container.get(VendorService);
+    const vendorRecord = await vendorServiceInstance.getVendorByEmail(email);
+
+    if (!vendorRecord) {
+      throw new Error('Vendor not registered');
+    }
+    this.logger.silly('Checking password');
+    const validPassword = await argon2.verify(vendorRecord.password, password);
+    if (validPassword) {
+      this.logger.silly('Password is valid!');
+      this.logger.silly('Generating JWT');
+      const token = this.generateToken(vendorRecord);
+      const vendor = vendorRecord.toObject();
+      return { vendor, token };
+    } else {
+      throw new Error('Invalid Password');
+    }
+  }
+
+  /**
+   * Reset password
+   * @param {string} resetPasswordToken
+   * @param {string} newPassword
+   * @returns {Promise}
+   */
+  public async sendUserPasswordReset(email: string): Promise<{ user: IUser; token: string }> {
+    try {
+    } catch (error) {}
   }
 
   private generateToken(user) {

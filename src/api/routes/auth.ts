@@ -17,7 +17,7 @@ export default (app: Router) => {
         password: Joi.string().required(),
       }),
     }),
-    AuthController.registerUser,
+    AuthController.createUser,
   );
 
   route.post(
