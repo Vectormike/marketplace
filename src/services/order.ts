@@ -32,6 +32,24 @@ export default class OrderService {
     }
   }
 
+  /**
+   * Returns all orders if token is verified
+   * @public
+   */
+  public async getOrder(id: string): Promise<{ order }> {
+    try {
+      this.logger.silly('Getting order by id');
+      const order = await this.orderModel.findById({ id }).exec();
+      if (!order) {
+        throw new Error('Order not found');
+      }
+      return { order };
+    } catch (error) {
+      this.logger.error(error);
+      return error;
+    }
+  }
+
   public async makeOrder(name: string, address: string, cart, user: string): Promise<{ order: IOrder }> {
     const orderId = randomBytes(2);
     try {
@@ -49,7 +67,7 @@ export default class OrderService {
       const order = await newOrder.save();
 
       this.logger.silly('Sending email to user');
-      await this.mailer.SendOrderEmail(user);
+      await this.mailer.sendOrderEmail(user);
 
       if (!order) {
         throw new Error('Unable to make your order');
